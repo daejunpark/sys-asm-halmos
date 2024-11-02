@@ -1,0 +1,22 @@
+#!/bin/bash
+set -euf -o pipefail
+
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
+
+EXECHASH_BYTECODE="$(geas "sys-asm/src/execution_hash/main.eas")"
+WITHDRAWALS_BYTECODE="$(geas "sys-asm/src/withdrawals/main.eas")"
+CONSOLODATIONS_BYTECODE="$(geas "sys-asm/src/consolidations/main.eas")"
+
+sed \
+    -e "s/@bytecode@/$EXECHASH_BYTECODE/" \
+    "$SCRIPT_DIR/test/EIP2935.t.sol.in" > "$SCRIPT_DIR/test/EIP2935.t.sol"
+
+sed \
+    -e "s/@bytecode@/$WITHDRAWALS_BYTECODE/" \
+    "$SCRIPT_DIR/test/EIP7002.t.sol.in" > "$SCRIPT_DIR/test/EIP7002.t.sol"
+
+sed \
+    -e "s/@bytecode@/$CONSOLODATIONS_BYTECODE/" \
+    "$SCRIPT_DIR/test/EIP7251.t.sol.in" > "$SCRIPT_DIR/test/EIP7251.t.sol"
+
+forge "$@" --evm-version shanghai

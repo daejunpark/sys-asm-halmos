@@ -1,0 +1,4 @@
+[profile.default]
+src = 'sys-asm/src'
+out = 'out'
+libs = ['lib', 'sys-asm/lib']
