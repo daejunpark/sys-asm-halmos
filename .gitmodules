@@ -1,3 +1,6 @@
 [submodule "sys-asm"]
 	path = sys-asm
 	url = https://github.com/lightclient/sys-asm
+[submodule "lib/halmos-cheatcodes"]
+	path = lib/halmos-cheatcodes
+	url = https://github.com/a16z/halmos-cheatcodes
