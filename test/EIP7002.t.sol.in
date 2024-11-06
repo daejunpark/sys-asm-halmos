@@ -71,11 +71,26 @@ contract EIP7002Test is SymTest, Test {
         // NOTE: excess is set to uint256_max until the hard fork
         // vm.assume(initState.excess < 2**64);
         vm.assume(initState.count < 2**64);
-        vm.assume(initState.queueHeadIndex <= initState.queueTailIndex);
         vm.assume(initState.queueTailIndex < 2**64);
+
+        // assume the contract invariants before executing any transaction
+        vm.assume(initState.queueHeadIndex <= initState.queueTailIndex);
     }
 
-    /// @custom:halmos --loop 16 --array-lengths data={0,1,2,32,56,64,1024}
+    /// @custom:halmos --array-lengths data={0,1,2,32,56,64,1024}
+    function check_invariant(address caller, uint256 value, bytes memory data) public {
+        // set symbolic balance for caller
+        uint256 callerBalance = svm.createUint(96, "caller.balance");
+        vm.deal(caller, callerBalance);
+
+        // call the contract and capture the new contract state
+        (, , State memory newState) = _callContract(caller, value, data);
+
+        // ensure the contract invariants still hold after the transaction
+        assertLe(newState.queueHeadIndex, newState.queueTailIndex);
+    }
+
+    /// @custom:halmos --array-lengths data={0,1,2,32,56,64,1024}
     function check_user_operation(address caller, uint256 value, bytes memory data) public {
         // user operation
         vm.assume(caller != SYSTEM_ADDRESS);
@@ -151,7 +166,7 @@ contract EIP7002Test is SymTest, Test {
         }
     }
 
-    /// @custom:halmos --loop 16 --array-lengths data={1024}
+    /// @custom:halmos --array-lengths data={1024}
     function check_system_operation(address caller, uint256 value, bytes memory data) public {
         // system operation
         vm.assume(caller == SYSTEM_ADDRESS);

@@ -85,7 +85,7 @@ contract EIP2935Test is SymTest, Test {
         vm.assume(block.number > 0);
     }
 
-    /// @custom:halmos --array-lengths data={0,1,2,32,1024}
+    /// @custom:halmos --array-lengths data={0,1,2,31,32,33,1024}
     function check_operation(address caller, uint value, bytes memory data) public {
         // set symbolic balance for caller
         uint256 callerBalance = svm.createUint(96, "caller.balance");

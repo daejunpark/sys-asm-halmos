@@ -8,6 +8,9 @@
 
 [global]
 
+# set loop unrolling bounds
+loop = 16
+
 # use the given command when invoking the solver
 solver-command = "yices-smt2"
 
