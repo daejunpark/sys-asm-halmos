@@ -87,7 +87,7 @@ contract EIP7251Test is SymTest, Test {
         (, , State memory newState) = _callContract(caller, value, data);
 
         // ensure the contract invariants still hold after the transaction
-        assertLe(newState.queueHeadIndex, newState.queueTailIndex);
+        assertLe(newState.queueHeadIndex, newState.queueTailIndex, "invariant: head <= tail");
     }
 
     /// @custom:halmos --array-lengths data={0,1,2,32,64,96,1024}
@@ -112,10 +112,10 @@ contract EIP7251Test is SymTest, Test {
             if (success) {
                 assertEq(uint256(bytes32(retdata)), _getFee(), "get: retdata");
                 // ensure no storage updates
-                assertEq(newState.anySlotValue, initState.anySlotValue);
+                assertEq(newState.anySlotValue, initState.anySlotValue, "get: storage");
                 // ensure zero callvalue
                 // introduced in: https://github.com/lightclient/sys-asm/pull/28
-                assertEq(value, 0);
+                assertEq(value, 0, "get: zero callvalue");
             } else {
                 // NOTE: the contract immediately reverts when excess == EXCESS_INHIBITOR
                 if (initState.excess != EXCESS_INHIBITOR) {
@@ -128,18 +128,18 @@ contract EIP7251Test is SymTest, Test {
         } else if (data.length == INPUT_SIZE) {
             if (success) {
                 // ensure count has increased
-                assertEq(newState.count, initState.count + 1);
+                assertEq(newState.count, initState.count + 1, "add: count");
 
                 // ensure new queue element
-                assertEq(newState.queueTailIndex, initState.queueTailIndex + 1);
+                assertEq(newState.queueTailIndex, initState.queueTailIndex + 1, "add: tail index");
                 uint256 queueTailSlot = CONSOLIDATION_REQUEST_QUEUE_STORAGE_OFFSET + initState.queueTailIndex * SLOTS_PER_ITEM;
                 bytes memory queueItem = _getQueueItem(queueTailSlot);
-                assertEq(queueItem, bytes.concat(bytes32(uint256(uint160(caller))), data));
+                assertEq(queueItem, bytes.concat(bytes32(uint256(uint160(caller))), data), "add: queue item");
                 // ensure no dirty bits for source address
-                assertEq(bytes12(this.slice(queueItem, 0, 12)), bytes12(0));
+                assertEq(bytes12(this.slice(queueItem, 0, 12)), bytes12(0), "add: zero padding");
 
                 // ensure sufficient fee
-                assertGe(value, _getFee());
+                assertGe(value, _getFee(), "add: sufficient callvalue");
 
                 // ensure no storage updates other than count, queue tail index, or the new queue item
                 if (
@@ -148,23 +148,23 @@ contract EIP7251Test is SymTest, Test {
                     (anySlot < queueTailSlot || anySlot >= queueTailSlot + SLOTS_PER_ITEM)  // new queue item
                 ) {
                     // NOTE: excess is not updated // TODO: figure out why
-                    assertEq(newState.anySlotValue, initState.anySlotValue);
+                    assertEq(newState.anySlotValue, initState.anySlotValue, "add: storage");
                 }
 
                 // ensure empty return data
-                assertEq(retdata.length, 0);
+                assertEq(retdata.length, 0, "add: retdata");
             } else {
                 // NOTE: the contract immediately reverts when excess == EXCESS_INHIBITOR
                 if (initState.excess != EXCESS_INHIBITOR) {
                     // ensure that the failure is only due to insufficient fee
-                    assertLt(value, _getFee());
+                    assertLt(value, _getFee(), "add: insufficient callvalue");
                 }
             }
 
         // invalid user operation
         } else {
             // ensure revert when calldatasize is neither 0 nor INPUT_SIZE
-            assertFalse(success);
+            assertFalse(success, "invalid user operation");
         }
     }
 
@@ -180,18 +180,18 @@ contract EIP7251Test is SymTest, Test {
         // call the contract and capture the new contract state
         (bool success, bytes memory retdata, State memory newState) = _callContract(caller, value, data);
 
-        assertTrue(success);
+        assertTrue(success, "system: success");
 
         // ensure excess update
         if (initState.excess != EXCESS_INHIBITOR) {
-            assertEq(newState.excess, subcap(initState.excess + initState.count, TARGET_CONSOLIDATION_REQUESTS_PER_BLOCK));
+            assertEq(newState.excess, subcap(initState.excess + initState.count, TARGET_CONSOLIDATION_REQUESTS_PER_BLOCK), "system: excess");
         } else {
             // at the fork block
-            assertEq(newState.excess, subcap(                   initState.count, TARGET_CONSOLIDATION_REQUESTS_PER_BLOCK));
+            assertEq(newState.excess, subcap(                   initState.count, TARGET_CONSOLIDATION_REQUESTS_PER_BLOCK), "system: excess at fork");
         }
 
         // ensure count reset
-        assertEq(newState.count, 0);
+        assertEq(newState.count, 0, "system: count");
 
         uint256 oldQueueSize = sub(initState.queueTailIndex, initState.queueHeadIndex);
         uint256 newQueueSize = sub(newState.queueTailIndex, newState.queueHeadIndex);
@@ -199,17 +199,17 @@ contract EIP7251Test is SymTest, Test {
 
         // ensure queue pointer updates
         if (oldQueueSize <= MAX_CONSOLIDATION_REQUESTS_PER_BLOCK) {
-            assertEq(newState.queueHeadIndex, 0);
-            assertEq(newState.queueTailIndex, 0);
+            assertEq(newState.queueHeadIndex, 0, "system: reset head index");
+            assertEq(newState.queueTailIndex, 0, "system: reset tail index");
         } else {
-            assertEq(newState.queueTailIndex, initState.queueTailIndex);
+            assertEq(newState.queueTailIndex, initState.queueTailIndex, "system: tail index");
         }
 
         // ensure max withdrawals per block
-        assertLe(numDequeued, MAX_CONSOLIDATION_REQUESTS_PER_BLOCK);
+        assertLe(numDequeued, MAX_CONSOLIDATION_REQUESTS_PER_BLOCK, "system: # of dequeued");
 
         // ensure retdata size
-        assertEq(retdata.length, RECORD_SIZE * numDequeued);
+        assertEq(retdata.length, RECORD_SIZE * numDequeued, "system: retdata size");
 
         // check retdata
         for (uint256 i = 0; i < numDequeued; i++) {
@@ -220,13 +220,13 @@ contract EIP7251Test is SymTest, Test {
 
                 uint256 retOffset = RECORD_SIZE * i;
                 // check source address
-                assertEq(_getSource(queueCurrItem), address(uint160(bytes20(this.slice(retdata, retOffset + 0, retOffset + 20)))));
+                assertEq(_getSource(queueCurrItem), address(uint160(bytes20(this.slice(retdata, retOffset + 0, retOffset + 20)))), "system: retdata source");
 
                 // check source pubkey
-                assertEq(_getSourcePubkey(queueCurrItem), this.slice(retdata, retOffset + 20, retOffset + 68));
+                assertEq(_getSourcePubkey(queueCurrItem), this.slice(retdata, retOffset + 20, retOffset + 68), "system: retdata source pubkey");
 
                 // check target pubkey
-                assertEq(_getTargetPubkey(queueCurrItem), this.slice(retdata, retOffset + 68, retOffset + RECORD_SIZE));
+                assertEq(_getTargetPubkey(queueCurrItem), this.slice(retdata, retOffset + 68, retOffset + RECORD_SIZE), "system: retdata target pubkey");
 
                 // NOTE: the else branch will continue with further iterations
                 return;
@@ -236,20 +236,20 @@ contract EIP7251Test is SymTest, Test {
         // ensure no storage update other than excess, count, and queue head/tail indexes
         // NOTE: "removed" queue elements are not reset to zero in storage, so they remain unchanged
         if (anySlot >= CONSOLIDATION_REQUEST_QUEUE_STORAGE_OFFSET) {
-            assertEq(newState.anySlotValue, initState.anySlotValue);
+            assertEq(newState.anySlotValue, initState.anySlotValue, "system: storage");
         }
     }
 
     function _check_balance_update(State memory newState, uint256 value, address caller, uint256 callerBalance) internal view {
         if (caller != CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS) {
-            assertEq(newState.balance, initState.balance + value);
-            assertEq(caller.balance, callerBalance - value);
+            assertEq(newState.balance, initState.balance + value, "balance: contract");
+            assertEq(caller.balance, callerBalance - value, "balance: caller");
         } else {
             // caller == CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS
             // self transfer, no balance change
-            assertEq(caller.balance, callerBalance);
+            assertEq(caller.balance, callerBalance, "balance: caller alias");
             // new balance set earlier by vm.deal(caller, callerBalance)
-            assertEq(newState.balance, callerBalance);
+            assertEq(newState.balance, callerBalance, "balance: contract alias");
         }
     }
 
@@ -348,7 +348,7 @@ contract EIP7251Test is SymTest, Test {
 
     // ensure no overflow in subtraction
     function sub(uint256 x, uint256 y) internal pure returns (uint256) {
-        assertGe(x, y);
+        assertGe(x, y, "sub");
         return x - y;
     }
 }

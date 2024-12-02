@@ -105,32 +105,32 @@ contract EIP2935Test is SymTest, Test {
                 uint input = uint(bytes32(data));
                 // valid input range: [block.number - HISTORY_SERVE_WINDOW, block.number - 1] (inclusive)
                 if (input <= block.number - 1 && block.number - input <= HISTORY_SERVE_WINDOW) {
-                    assertTrue(success);
-                    assertEq(bytes32(retdata), vm.load(HISTORY_STORAGE_ADDRESS, bytes32(input % HISTORY_SERVE_WINDOW)));
+                    assertTrue(success, "get: valid input range");
+                    assertEq(bytes32(retdata), vm.load(HISTORY_STORAGE_ADDRESS, bytes32(input % HISTORY_SERVE_WINDOW)), "get: retdata");
                 } else {
                     // ensure revert for any input outside the valid range
-                    assertFalse(success);
+                    assertFalse(success, "get: invalid input");
                 }
             } else {
                 // ensure revert if calldata length is not 32 bytes
-                assertFalse(success);
+                assertFalse(success, "get: invalid calldata length");
             }
 
             // ensure no storage updates
-            assertEq(newState.anySlotValue, initState.anySlotValue);
+            assertEq(newState.anySlotValue, initState.anySlotValue, "get: storage");
 
         // set() operation
         } else {
             // ensure set() operation never reverts
-            assertTrue(success);
+            assertTrue(success, "set: success");
 
             // ensure the storage value at `block.number-1 % HISTORY_SERVE_WINDOW` is set to calldata[0:32]
             bytes32 input = bytes32(data); // implicit zero-padding if data.length < 32
-            assertEq(input, vm.load(HISTORY_STORAGE_ADDRESS, bytes32((block.number - 1) % HISTORY_SERVE_WINDOW)));
+            assertEq(input, vm.load(HISTORY_STORAGE_ADDRESS, bytes32((block.number - 1) % HISTORY_SERVE_WINDOW)), "set: storage update");
 
             // ensure no storage updates other than the set slot
             if (anySlot != (block.number - 1) % HISTORY_SERVE_WINDOW) {
-                assertEq(newState.anySlotValue, initState.anySlotValue);
+                assertEq(newState.anySlotValue, initState.anySlotValue, "set: other storage slots");
             }
         }
 
@@ -142,14 +142,14 @@ contract EIP2935Test is SymTest, Test {
 
     function _check_balance_update(State memory newState, uint256 value, address caller, uint256 callerBalance) internal view {
         if (caller != HISTORY_STORAGE_ADDRESS) {
-            assertEq(newState.balance, initState.balance + value);
-            assertEq(caller.balance, callerBalance - value);
+            assertEq(newState.balance, initState.balance + value, "balance: contract");
+            assertEq(caller.balance, callerBalance - value, "balance: caller");
         } else {
             // caller == HISTORY_STORAGE_ADDRESS
             // self transfer, no balance change
-            assertEq(caller.balance, callerBalance);
+            assertEq(caller.balance, callerBalance, "balance alias: caller");
             // new balance set earlier by vm.deal(caller, callerBalance)
-            assertEq(newState.balance, callerBalance);
+            assertEq(newState.balance, callerBalance, "balance alias: contract");
         }
     }
 
