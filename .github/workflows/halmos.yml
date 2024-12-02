@@ -39,8 +39,5 @@ jobs:
           sudo tar -xzf yices-2.6.4-x86_64-pc-linux-gnu.tar.gz -C /usr/local --strip-components=1
           sudo rm yices-2.6.4-x86_64-pc-linux-gnu.tar.gz
 
-      - name: Build
-        run: ./build-wrapper build
-
       - name: Run Halmos
         run: halmos --solver-threads 3 --solver-timeout-assertion 0
