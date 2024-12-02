@@ -16,3 +16,6 @@ solver-command = "yices-smt2"
 
 # cache unsat queries using unsat cores
 cache-solver = false
+
+# enable vm.ffi (required for Geas.compile)
+ffi = true
