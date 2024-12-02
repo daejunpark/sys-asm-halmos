@@ -107,18 +107,21 @@ contract EIP7002Test is SymTest, Test {
             _check_balance_update(newState, value, caller, callerBalance);
         }
 
-        // get_excess_withdrawal_requests() operation
+        // getter
         if (data.length == 0) {
             if (success) {
-                assertEq(uint256(bytes32(retdata)), initState.excess);
+                assertEq(uint256(bytes32(retdata)), _getFee(), "get: retdata");
                 // ensure no storage updates
                 assertEq(newState.anySlotValue, initState.anySlotValue);
                 // ensure zero callvalue
                 // introduced in: https://github.com/lightclient/sys-asm/pull/28
                 assertEq(value, 0);
             } else {
-                // ensure that the failure is only due to non-zero callvalue
-                assertNotEq(value, 0);
+                // NOTE: the contract immediately reverts when excess == EXCESS_INHIBITOR
+                if (initState.excess != EXCESS_INHIBITOR) {
+                    // ensure that the failure is only due to non-zero callvalue
+                    assertNotEq(value, 0, "get: non-zero callvalue");
+                }
             }
 
         // add_withdrawal_request() operation
