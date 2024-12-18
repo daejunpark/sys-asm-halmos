@@ -56,7 +56,7 @@ contract EIP2935Test is SymTest, Test {
     address constant HISTORY_STORAGE_ADDRESS = address(0x0AAE40965E6800cD9b1f4b05ff21581047E3F91e);
     address constant SYSTEM_ADDRESS = address(0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE);
 
-    // TODO: inconsistency between code and spec: 8191 vs 8192
+    // 8191 vs 8192: https://github.com/ethereum/EIPs/pull/9144
     uint constant HISTORY_SERVE_WINDOW = 8191;
 
     // variables for specifying correctness properties
