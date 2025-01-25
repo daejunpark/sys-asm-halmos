@@ -70,7 +70,7 @@ The system contract provides two operations: `get()` and `set()`.
 
 #### Halmos Test Properties:
 
-We created [halmos tests](test/EIP2935.t.sol.in) to confirm the correct behavior of both operations.
+We created [halmos tests](test/EIP2935.t.sol) to confirm the correct behavior of both operations.
 
 For the get() operation, halmos tests verify that it:
 - Checks for valid input range, reverting if not valid.
@@ -141,7 +141,7 @@ The genesis block (`block.number == 0`) is excluded from verification, as its be
 
 The selected calldata sizes were chosen based on branching conditions in the code related to `data.length == 32`. Provided that no additional code paths depend on calldata sizes not considered, (as confirmed by manual inspection of the bytecode implementation), this bounded verification ensures a sufficient correctness guarantee.
 
-The full halmos tests for EIP-2935 can be found [here](test/EIP2935.t.sol.in).
+The full halmos tests for EIP-2935 can be found [here](test/EIP2935.t.sol).
 
 
 ### EIP-7002: Withdrawal Requests Queue
@@ -187,7 +187,7 @@ The fee calculation employs an approximation of `e^x`, called `fake_exponential(
 
 #### Halmos Test Properties:
 
-We developed [halmos tests](test/EIP7002.t.sol.in) to verify the correct behavior of both operations.
+We developed [halmos tests](test/EIP7002.t.sol) to verify the correct behavior of both operations.
 
 For the user operation, halmos tests ensure that it:
 - Inserts a new element into the queue with accurate encoding and zero-padding as required.
@@ -372,7 +372,7 @@ The main loop in `fake_exponential()` is unbounded, but current halmos tests ver
 
 Similar to the EIP-2935 tests, the selected calldata sizes were chosen based on branching conditions in the code related to `data.length == 56`. Provided that no additional code paths depend on calldata sizes not considered, (as confirmed by manual inspection of the bytecode implementation), this bounded verification ensures a sufficient correctness guarantee. Additionally, the upper limit on balances does not impact completeness, as `2**96` wei (more than 70 billion ether) far exceeds the current total Ether supply.
 
-The full halmos tests for EIP-7002 can be found [here](test/EIP7002.t.sol.in).
+The full halmos tests for EIP-7002 can be found [here](test/EIP7002.t.sol).
 
 
 ### EIP-7251: Consolidation Requests Queue
@@ -384,7 +384,7 @@ The EIP-7251 system contract closely mirrors the EIP-7002 contract, except that 
 
 For the verification of the EIP-7251 contract, we leveraged the existing properties developed for the EIP-7002 system contract. Adjustments were made to account for the differences in queue element size and encoding specific to consolidation requests. These properties inherit the same level of verification completeness.
 
-The full halmos tests for EIP-7251 can be found [here](test/EIP7251.t.sol.in).
+The full halmos tests for EIP-7251 can be found [here](test/EIP7251.t.sol).
 
 
 ## Findings from Verification Process
