@@ -53,7 +53,7 @@ import "geas-ffi/Geas.sol";
 /// @custom:halmos --storage-layout generic --panic-error-codes *
 contract EIP2935Test is SymTest, Test {
     // constants defined in EIP-2935
-    address constant HISTORY_STORAGE_ADDRESS = address(0x0AAE40965E6800cD9b1f4b05ff21581047E3F91e);
+    address constant HISTORY_STORAGE_ADDRESS = address(0x0000F90827F1C53a10cb7A02335B175320002935);
     address constant SYSTEM_ADDRESS = address(0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE);
 
     // 8191 vs 8192: https://github.com/ethereum/EIPs/pull/9144
