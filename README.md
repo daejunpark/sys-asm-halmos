@@ -1,4 +1,10 @@
-# Functional Correctness Verification of Pectra System Contracts using Halmos
+# Continuous Formal Verification of Pectra System Contracts with Halmos
+
+👉 _**Check out our [post] for more insights.**_
+
+[post]: https://a16zcrypto.com/posts/article/formal-verification-of-pectra-system-contracts-with-halmos/
+
+#
 
 The [Pectra] hardfork, scheduled to ship in early 2025, introduces several enhancements in user experience and validator operations. Some of these improvements require system contracts that implement on-chain logic. Specifically:
 
