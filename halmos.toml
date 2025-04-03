@@ -12,7 +12,7 @@
 loop = 16
 
 # use the given command when invoking the solver
-solver-command = "yices-smt2"
+solver-command = "yices-smt2 --smt2-model-format"
 
 # cache unsat queries using unsat cores
 cache-solver = false
