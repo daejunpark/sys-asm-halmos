@@ -99,6 +99,7 @@ contract EIP7002Test is SymTest, Test {
 
         // set symbolic balance for caller
         uint256 callerBalance = svm.createUint(96, "caller.balance");
+        vm.assume(callerBalance >= value);
         vm.deal(caller, callerBalance);
 
         // call the contract and capture the new contract state
@@ -178,6 +179,7 @@ contract EIP7002Test is SymTest, Test {
 
         // set symbolic balance for caller
         uint256 callerBalance = svm.createUint(96, "caller.balance");
+        vm.assume(callerBalance >= value);
         vm.deal(caller, callerBalance);
 
         // call the contract and capture the new contract state
