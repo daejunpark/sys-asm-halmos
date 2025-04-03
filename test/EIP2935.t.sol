@@ -92,6 +92,7 @@ contract EIP2935Test is SymTest, Test {
     function check_operation(address caller, uint value, bytes memory data) public {
         // set symbolic balance for caller
         uint256 callerBalance = svm.createUint(96, "caller.balance");
+        vm.assume(callerBalance >= value);
         vm.deal(caller, callerBalance);
 
         // call HISTORY_STORAGE_ADDRESS
